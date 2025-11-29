@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Pages部署指南</title>
+    <style>
+        :root {
+            --primary: #24292e;
+            --secondary: #0366d6;
+            --light: #f6f8fa;
+            --border: #e1e4e8;
+            --success: #28a745;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        body {
+            background-color: #fafbfc;
+            color: #24292e;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), #2d333b);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        h3 {
+            margin: 1.5rem 0 0.5rem;
+            color: var(--secondary);
+        }
+        
+        .step {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-left: 3rem;
+        }
+        
+        .step:before {
+            content: counter(step-counter);
+            background-color: var(--secondary);
+            color: white;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        .code-block {
+            background-color: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .note {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffd600;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .flowchart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 2rem 0;
+        }
+        
+        .flow-step {
+            background: white;
+            border: 2px solid var(--secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            width: 80%;
+            text-align: center;
+            margin: 0.5rem 0;
+            position: relative;
+        }
+        
+        .flow-step:not(:last-child):after {
+            content: "↓";
+            position: absolute;
+            bottom: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+        
+        .faq-item {
+            margin-bottom: 1.5rem;
+        }
+        
+        .faq-question {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            color: #6a737d;
+            border-top: 1px solid var(--border);
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #0256b3;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .flow-step {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>GitHub Pages部署指南</h1>
+            <p class="subtitle">快速将你的HTML项目部署到免费的GitHub Pages</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2>什么是GitHub Pages？</h2>
+            <p>GitHub Pages是一项免费的静态网站托管服务，可以直接从GitHub仓库部署HTML、CSS和JavaScript文件。你可以使用GitHub Pages托管个人、项目或组织网站。</p>
+        </div>
+        
+        <div class="card">
+            <h2>部署流程概览</h2>
+            <div class="flowchart">
+                <div class="flow-step">准备HTML文件</div>
+                <div class="flow-step">创建GitHub仓库</div>
+                <div class="flow-step">上传文件到仓库</div>
+                <div class="flow-step">启用GitHub Pages</div>
+                <div class="flow-step">访问你的网站</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>详细步骤</h2>
+            
+            <div class="step">
+                <h3>准备你的HTML文件</h3>
+                <p>确保你的HTML文件命名为<code>index.html</code>，这样它将被自动识别为网站的主页。</p>
+                <div class="code-block">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;我的网站&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;欢迎访问我的网站！&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+                </div>
+                <div class="note">
+                    <strong>注意：</strong> 如果你的项目有多个HTML文件，确保它们之间的链接使用相对路径。
+                </div>
+            </div>
+            
+            <div class="step">
+                <h3>创建GitHub仓库</h3>
+                <p>登录你的GitHub账户，点击右上角的"+"图标，选择"New repository"。</p>
+                <ul>
+                    <li>给仓库起一个名字（例如：my-website）</li>
+                    <li>选择公开（Public）或私有（Private）</li>
+                    <li>可选择添加README文件</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h3>上传文件到仓库</h3>
+                <p>有几种方式可以将文件上传到GitHub仓库：</p>
+                
+                <h4>方法一：通过网页界面上传</h4>
+                <p>在仓库页面，点击"Add file" → "Upload files"，然后将你的HTML文件和其他资源拖拽到上传区域。</p>
+                
+                <h4>方法二：使用Git命令行</h4>
+                <div class="code-block">
+# 克隆仓库到本地
+git clone https://github.com/你的用户名/仓库名.git
+
+# 进入仓库目录
+cd 仓库名
+
+# 添加你的HTML文件
+# 提交更改
+git add .
+git commit -m "添加网站文件"
+
+# 推送到GitHub
+git push
+                </div>
+            </div>
+            
+            <div class="step">
+                <h3>启用GitHub Pages</h3>
+                <p>在仓库页面，点击"Settings"标签，然后在左侧菜单中找到"Pages"。</p>
+                <ul>
+                    <li>在"Source"部分，选择分支（通常是main或master）</li>
+                    <li>选择根目录（/ (root)）</li>
+                    <li>点击"Save"</li>
+                </ul>
+                <p>几分钟后，你的网站将在以下URL上线：<br>
+                <code>https://你的用户名.github.io/仓库名</code></p>
+            </div>
+            
+            <div class="step">
+                <h3>访问你的网站</h3>
+                <p>在GitHub Pages设置页面，你会看到你的网站URL。点击该链接即可访问你部署的网站。</p>
+                <p>如果这是你的第一个用户网站，URL将是：<br>
+                <code>https://你的用户名.github.io</code></p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>常见问题解答</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">我的网站没有显示最新更改？</div>
+                <p>GitHub Pages部署通常需要几分钟时间。如果更改没有立即显示，请等待几分钟后刷新页面。</p>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">我可以使用自定义域名吗？</div>
+                <p>是的，你可以在GitHub Pages设置中添加自定义域名。你还需要在域名提供商处配置DNS记录。</p>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">为什么我的网站显示404错误？</div>
+                <p>请确保：1) 你的仓库是公开的；2) 你已正确启用GitHub Pages；3) 你的主HTML文件名为index.html。</p>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">GitHub Pages支持PHP或其他服务器端语言吗？</div>
+                <p>不支持。GitHub Pages只能托管静态内容（HTML、CSS、JavaScript）。</p>
+            </div>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <h2>准备好开始了吗？</h2>
+            <p>立即将你的HTML项目部署到GitHub Pages！</p>
+            <a href="https://github.com/new" class="btn" target="_blank">创建新仓库</a>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>本指南仅用于教育目的。GitHub Pages服务条款适用。</p>
+        </div>
+    </footer>
+</body>
+</html>
