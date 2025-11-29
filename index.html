@@ -1,332 +1,829 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Pages部署指南</title>
-    <style>
-        :root {
-            --primary: #24292e;
-            --secondary: #0366d6;
-            --light: #f6f8fa;
-            --border: #e1e4e8;
-            --success: #28a745;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-        
-        body {
-            background-color: #fafbfc;
-            color: #24292e;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), #2d333b);
-            color: white;
-            padding: 2rem 0;
-            text-align: center;
-            margin-bottom: 2rem;
-            border-radius: 0 0 10px 10px;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            font-weight: 300;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-        }
-        
-        h2 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        h3 {
-            margin: 1.5rem 0 0.5rem;
-            color: var(--secondary);
-        }
-        
-        .step {
-            counter-increment: step-counter;
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-left: 3rem;
-        }
-        
-        .step:before {
-            content: counter(step-counter);
-            background-color: var(--secondary);
-            color: white;
-            font-weight: bold;
-            border-radius: 50%;
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-        
-        .code-block {
-            background-color: var(--light);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 1rem;
-            margin: 1rem 0;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-        }
-        
-        .note {
-            background-color: #fff8e1;
-            border-left: 4px solid #ffd600;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-        
-        .flowchart {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 2rem 0;
-        }
-        
-        .flow-step {
-            background: white;
-            border: 2px solid var(--secondary);
-            border-radius: 8px;
-            padding: 1rem;
-            width: 80%;
-            text-align: center;
-            margin: 0.5rem 0;
-            position: relative;
-        }
-        
-        .flow-step:not(:last-child):after {
-            content: "↓";
-            position: absolute;
-            bottom: -1.5rem;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.5rem;
-            color: var(--secondary);
-        }
-        
-        .faq-item {
-            margin-bottom: 1.5rem;
-        }
-        
-        .faq-question {
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            padding: 1.5rem;
-            color: #6a737d;
-            border-top: 1px solid var(--border);
-        }
-        
-        .btn {
-            display: inline-block;
-            background-color: var(--secondary);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        
-        .btn:hover {
-            background-color: #0256b3;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .flow-step {
-                width: 95%;
-            }
-        }
-    </style>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Excel联系人拨号系统</title>
+  <link rel="shortcut icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCgbBSAcAATYAgQ0W0l8AAAAASUVORK5CYII=" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    *{margin:0;padding:0;font-family:"PingFangSC-Regular","Microsoft YaHei","微软雅黑",verdana,sans-serif,Simsun,STXihei;}
+    body{
+      padding:0 15px;background:#fafafa;
+      background-image:url(data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAoACgDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmQn//Z);
+      background-repeat:repeat;
+    }
+    .bold{font-weight:bold;}
+    .center{text-align:center;}
+    .muted{color:#656565;}
+    .mt-5{margin-top:5px}.mt-10{margin-top:10px}.mt-20{margin-top:20px}.mt-30{margin-top:30px}
+    .card{margin-top:24px;border:1px solid #b9b9b9;background:#fff;padding:25px 15px;font-size:16px;border-radius:8px}
+    .plate{display:inline-block;border-radius:6px;padding:0 12px;height:26px;line-height:26px;border:1px solid #3B78DD;color:#3B78DD;margin-top:6px}
+    .btn{display:inline-block;text-decoration:none;border-radius:8px;min-width:120px;height:40px;line-height:40px;text-align:center;border:1px solid #3B78DD;color:#3B78DD;padding:0 14px;margin:6px}
+    .btn.primary{background:#3B78DD;color:#fff;border-color:#3B78DD}
+    .btn.gray{border-color:#999;color:#333}
+    .tip{font-size:14px;color:#656565;margin-top:12px;text-align:center}
+    .hidden{display:none}
+    .steps p{font-size:15px;line-height:25px}
+    .manual .block{border:1px solid #B9B9B9;border-radius:8px;background:#fff;margin:8px 0}
+    .manual .block p{padding:12px 16px;border-bottom:1px solid #eee}
+    .manual .block p:last-child{border-bottom:none}
+    
+    /* 新增样式 */
+    .contact-list {margin-top: 20px;}
+    .contact-item {padding: 15px; border-bottom: 1px solid #eee;}
+    .contact-item:last-child {border-bottom: none;}
+    .contact-name {font-weight: bold; margin-bottom: 12px; font-size: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start;}
+    .contact-name-main {flex: 1;}
+    .contact-debt-info {text-align: right; font-size: 14px; color: #666; margin-left: 15px;}
+    .debt-amount {color: #e74c3c; font-weight: bold;}
+    .debt-period {color: #f39c12;}
+    .contact-address {margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 14px; color: #555; border-left: 3px solid #3B78DD;}
+    .phone-section {margin-left: 10px;}
+    .phone-row {display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f0f0f0;}
+    .phone-row:last-child {border-bottom: none;}
+    .phone-type {color: #666; font-size: 14px; min-width: 60px;}
+    .phone-number {flex: 1; margin: 0 10px; color: #333; font-size: 16px;}
+    .phone-actions {display: flex; gap: 10px;}
+    .file-upload {margin: 20px 0; text-align: center;}
+    .file-input {display: none;}
+    .file-label {display: inline-block; padding: 10px 20px; background: #3B78DD; color: white; border-radius: 6px; cursor: pointer;}
+    .file-name {margin-top: 10px; font-size: 14px; color: #666;}
+    .empty-state {text-align: center; padding: 30px; color: #999;}
+    .contact-count {text-align: center; margin-top: 10px; color: #3B78DD; font-weight: bold;}
+    .column-info {background: #f0f8ff; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 14px;}
+    .no-phones {color: #999; font-style: italic; margin-left: 10px;}
+    .auto-fixed {color: #d35400; font-weight: bold;}
+    
+    /* 筛选器样式 */
+    .filter-section {margin: 20px 0; text-align: center;}
+    .filter-label {margin-right: 10px; font-weight: bold;}
+    .filter-select {padding: 8px 12px; border: 1px solid #3B78DD; border-radius: 6px; font-size: 14px; min-width: 150px;}
+    .collector-badge {display: inline-block; background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px;}
+    
+    /* 重复联系人高亮样式 */
+    .duplicate-contact {background-color: #fff8e1; border-left: 4px solid #ffc107;}
+    .duplicate-badge {display: inline-block; background: #ffecb3; color: #ff8f00; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px; font-weight: bold;}
+    
+    /* 重复次数样式 */
+    .duplicate-info-badge {display: inline-block; background: #ffcdd2; color: #c62828; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 8px; font-weight: bold;}
+    .name-duplicate {background: #ffcdd2; color: #c62828;}
+    .phone-duplicate {background: #c8e6c9; color: #2e7d32;}
+    .mobile-duplicate {background: #bbdefb; color: #1565c0;}
+  </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>GitHub Pages部署指南</h1>
-            <p class="subtitle">快速将你的HTML项目部署到免费的GitHub Pages</p>
-        </div>
-    </header>
+  <main role="main" aria-labelledby="title">
+    <h1 id="title" class="center bold mt-30">Excel联系人拨号系统</h1>
+    <p class="title-info center mt-5">上传Excel文件，自动识别联系人并拨打电话</p>
     
-    <div class="container">
-        <div class="card">
-            <h2>什么是GitHub Pages？</h2>
-            <p>GitHub Pages是一项免费的静态网站托管服务，可以直接从GitHub仓库部署HTML、CSS和JavaScript文件。你可以使用GitHub Pages托管个人、项目或组织网站。</p>
-        </div>
-        
-        <div class="card">
-            <h2>部署流程概览</h2>
-            <div class="flowchart">
-                <div class="flow-step">准备HTML文件</div>
-                <div class="flow-step">创建GitHub仓库</div>
-                <div class="flow-step">上传文件到仓库</div>
-                <div class="flow-step">启用GitHub Pages</div>
-                <div class="flow-step">访问你的网站</div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2>详细步骤</h2>
-            
-            <div class="step">
-                <h3>准备你的HTML文件</h3>
-                <p>确保你的HTML文件命名为<code>index.html</code>，这样它将被自动识别为网站的主页。</p>
-                <div class="code-block">
-&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-    &lt;title&gt;我的网站&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;h1&gt;欢迎访问我的网站！&lt;/h1&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-                </div>
-                <div class="note">
-                    <strong>注意：</strong> 如果你的项目有多个HTML文件，确保它们之间的链接使用相对路径。
-                </div>
-            </div>
-            
-            <div class="step">
-                <h3>创建GitHub仓库</h3>
-                <p>登录你的GitHub账户，点击右上角的"+"图标，选择"New repository"。</p>
-                <ul>
-                    <li>给仓库起一个名字（例如：my-website）</li>
-                    <li>选择公开（Public）或私有（Private）</li>
-                    <li>可选择添加README文件</li>
-                </ul>
-            </div>
-            
-            <div class="step">
-                <h3>上传文件到仓库</h3>
-                <p>有几种方式可以将文件上传到GitHub仓库：</p>
-                
-                <h4>方法一：通过网页界面上传</h4>
-                <p>在仓库页面，点击"Add file" → "Upload files"，然后将你的HTML文件和其他资源拖拽到上传区域。</p>
-                
-                <h4>方法二：使用Git命令行</h4>
-                <div class="code-block">
-# 克隆仓库到本地
-git clone https://github.com/你的用户名/仓库名.git
-
-# 进入仓库目录
-cd 仓库名
-
-# 添加你的HTML文件
-# 提交更改
-git add .
-git commit -m "添加网站文件"
-
-# 推送到GitHub
-git push
-                </div>
-            </div>
-            
-            <div class="step">
-                <h3>启用GitHub Pages</h3>
-                <p>在仓库页面，点击"Settings"标签，然后在左侧菜单中找到"Pages"。</p>
-                <ul>
-                    <li>在"Source"部分，选择分支（通常是main或master）</li>
-                    <li>选择根目录（/ (root)）</li>
-                    <li>点击"Save"</li>
-                </ul>
-                <p>几分钟后，你的网站将在以下URL上线：<br>
-                <code>https://你的用户名.github.io/仓库名</code></p>
-            </div>
-            
-            <div class="step">
-                <h3>访问你的网站</h3>
-                <p>在GitHub Pages设置页面，你会看到你的网站URL。点击该链接即可访问你部署的网站。</p>
-                <p>如果这是你的第一个用户网站，URL将是：<br>
-                <code>https://你的用户名.github.io</code></p>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2>常见问题解答</h2>
-            
-            <div class="faq-item">
-                <div class="faq-question">我的网站没有显示最新更改？</div>
-                <p>GitHub Pages部署通常需要几分钟时间。如果更改没有立即显示，请等待几分钟后刷新页面。</p>
-            </div>
-            
-            <div class="faq-item">
-                <div class="faq-question">我可以使用自定义域名吗？</div>
-                <p>是的，你可以在GitHub Pages设置中添加自定义域名。你还需要在域名提供商处配置DNS记录。</p>
-            </div>
-            
-            <div class="faq-item">
-                <div class="faq-question">为什么我的网站显示404错误？</div>
-                <p>请确保：1) 你的仓库是公开的；2) 你已正确启用GitHub Pages；3) 你的主HTML文件名为index.html。</p>
-            </div>
-            
-            <div class="faq-item">
-                <div class="faq-question">GitHub Pages支持PHP或其他服务器端语言吗？</div>
-                <p>不支持。GitHub Pages只能托管静态内容（HTML、CSS、JavaScript）。</p>
-            </div>
-        </div>
-        
-        <div class="card" style="text-align: center;">
-            <h2>准备好开始了吗？</h2>
-            <p>立即将你的HTML项目部署到GitHub Pages！</p>
-            <a href="https://github.com/new" class="btn" target="_blank">创建新仓库</a>
-        </div>
+    <div class="file-upload">
+      <label for="excelFile" class="file-label">选择Excel文件</label>
+      <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls">
+      <div id="fileName" class="file-name">未选择文件</div>
     </div>
-    
-    <footer>
-        <div class="container">
-            <p>本指南仅用于教育目的。GitHub Pages服务条款适用。</p>
+
+    <section class="card">
+      <div class="steps">
+        <p class="muted">第一步：上传包含姓名和手机号的Excel文件</p>
+        
+        <!-- 筛选器部分 -->
+        <div id="filterSection" class="filter-section hidden">
+          <label class="filter-label">按催费员筛选：</label>
+          <select id="collectorFilter" class="filter-select">
+            <option value="all">全部催费员</option>
+          </select>
         </div>
-    </footer>
+        
+        <p class="bold mt-10">第二步：选择要联系的人</p>
+        
+        <div id="columnInfo" class="column-info hidden">
+          已识别列：<span id="nameColumn">用户名称</span>、<span id="phoneColumn">电话</span>、<span id="mobileColumn">手机</span>、<span id="collectorColumn">催费员</span>、<span id="debtAmountColumn">欠费总额</span>、<span id="debtPeriodColumn">欠费期数</span>、<span id="addressColumn">用电地址</span>
+        </div>
+        
+        <div id="contactList" class="contact-list">
+          <div class="empty-state">请先上传Excel文件</div>
+        </div>
+        
+        <p class="bold mt-10">第三步：联络成功</p>
+        <p>点击联系人旁边的"拨打电话"按钮即可直接呼叫。</p>
+        <p class="tip auto-fixed-info">橙色号码表示已自动添加0769区号</p>
+        <p class="tip duplicate-info" style="color:#ff8f00;font-weight:bold;">黄色背景表示重复联系人（姓名、电话和手机号相同）</p>
+        <p class="tip duplicate-detail-info" style="color:#c62828;font-weight:bold;">
+          重复标识：<span style="background:#ffcdd2;padding:2px 6px;border-radius:4px;">姓名重复</span>
+          <span style="background:#c8e6c9;padding:2px 6px;border-radius:4px;margin-left:5px;">电话重复</span>
+          <span style="background:#bbdefb;padding:2px 6px;border-radius:4px;margin-left:5px;">手机重复</span>
+        </p>
+      </div>
+      <p id="tips" class="tip">如果无法自动跳转，请手动点击拨号按钮。</p>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      // ===== DOM =====
+      const fileInput = document.getElementById('excelFile');
+      const fileName = document.getElementById('fileName');
+      const contactList = document.getElementById('contactList');
+      const tipsEl = document.getElementById('tips');
+      const columnInfo = document.getElementById('columnInfo');
+      const nameColumnEl = document.getElementById('nameColumn');
+      const phoneColumnEl = document.getElementById('phoneColumn');
+      const mobileColumnEl = document.getElementById('mobileColumn');
+      const collectorColumnEl = document.getElementById('collectorColumn');
+      const debtAmountColumnEl = document.getElementById('debtAmountColumn');
+      const debtPeriodColumnEl = document.getElementById('debtPeriodColumn');
+      const addressColumnEl = document.getElementById('addressColumn');
+      const filterSection = document.getElementById('filterSection');
+      const collectorFilter = document.getElementById('collectorFilter');
+      
+      // 存储联系人数据
+      let contacts = [];
+      let collectors = [];
+      
+      // 文件选择事件
+      fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        fileName.textContent = `已选择: ${file.name}`;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            
+            // 获取第一个工作表
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            // 转换为JSON
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, {defval: ""});
+            
+            // 处理数据
+            processExcelData(jsonData);
+          } catch (error) {
+            console.error('解析Excel文件出错:', error);
+            tipsEl.textContent = '解析Excel文件出错，请检查文件格式';
+            contactList.innerHTML = '<div class="empty-state">文件格式错误，请重新选择</div>';
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      });
+      
+      // 筛选器变化事件
+      collectorFilter.addEventListener('change', function() {
+        renderContactList();
+      });
+      
+      // 识别列名
+      function detectColumns(headers) {
+        const columnMap = {
+          name: ['用户名称'],
+          phone: ['电话'],
+          mobile: ['手机'],
+          collector: ['催费员'],
+          debtAmount: ['欠费总额'],
+          debtPeriod: ['欠费期数'],
+          address: ['用电地址']
+        };
+        
+        const result = {
+          name: '',
+          phone: '',
+          mobile: '',
+          collector: '',
+          debtAmount: '',
+          debtPeriod: '',
+          address: ''
+        };
+        
+        // 查找匹配的列名
+        headers.forEach(header => {
+          const headerLower = header.toLowerCase().replace(/\s+/g, '');
+          
+          // 检查名称列
+          if (!result.name && columnMap.name.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+            result.name = header;
+          }
+          
+          // 检查电话列
+          if (!result.phone && columnMap.phone.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+            result.phone = header;
+          }
+          
+          // 检查手机列
+          if (!result.mobile && columnMap.mobile.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+            result.mobile = header;
+          }
+          
+          // 检查催费员列
+          if (!result.collector && columnMap.collector.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+            result.collector = header;
+          }
+          
+          // 检查欠费总额列
+          if (!result.debtAmount && columnMap.debtAmount.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+            result.debtAmount = header;
+          }
+          
+          // 检查欠费期数列
+          if (!result.debtPeriod && columnMap.debtPeriod.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+            result.debtPeriod = header;
+          }
+          
+          // 检查用电地址列
+          if (!result.address && columnMap.address.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+            result.address = header;
+          }
+        });
+        
+        return result;
+      }
+      
+      // 电话号码验证和修复函数
+      function validateAndFixPhoneNumber(phone, type) {
+        const originalPhone = phone;
+        
+        // 手机号验证（11位数字，以1开头）
+        const mobileRegex = /^1[3-9]\d{9}$/;
+        
+        // 固话验证（带区号）
+        const landlineWithAreaRegex = /^0\d{2,3}-?\d{7,8}$/;
+        
+        // 7-8位数字（可能是缺少区号的固话）
+        const shortNumberRegex = /^\d{7,8}$/;
+        
+        let isValid = false;
+        let fixedNumber = phone;
+        let isAutoFixed = false;
+        
+        // 清理号码中的空格和特殊字符
+        const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+        
+        // 检查手机号
+        if (mobileRegex.test(cleanPhone)) {
+          isValid = true;
+          fixedNumber = cleanPhone;
+        }
+        // 检查带区号的固话
+        else if (landlineWithAreaRegex.test(cleanPhone)) {
+          isValid = true;
+          fixedNumber = cleanPhone.replace(/^0/, '0'); // 确保区号格式正确
+        }
+        // 检查是否为7-8位数字（可能是缺少区号的固话）
+        else if (shortNumberRegex.test(cleanPhone)) {
+          // 自动添加0769区号
+          fixedNumber = '0769' + cleanPhone;
+          isValid = landlineWithAreaRegex.test(fixedNumber);
+          isAutoFixed = true;
+        }
+        
+        return {
+          original: originalPhone,
+          number: fixedNumber,
+          isValid: isValid,
+          isAutoFixed: isAutoFixed,
+          type: type
+        };
+      }
+      
+      // 去除括号及其内容和数字的函数
+      function cleanNameForDuplicateDetection(text) {
+        if (!text) return text;
+        // 去除中文括号和英文括号及其内容
+        let cleaned = text.replace(/[（(].*?[）)]/g, '');
+        // 去除所有数字
+        cleaned = cleaned.replace(/\d+/g, '');
+        // 去除可能的多余空格并返回
+        return cleaned.trim();
+      }
+      
+      // 检测重复联系人
+      function detectDuplicateContacts(contacts) {
+        // 创建Map来跟踪重复的联系人
+        const contactMap = new Map();
+        const nameDuplicateMap = new Map();
+        const phoneDuplicateMap = new Map();
+        const mobileDuplicateMap = new Map();
+        
+        // 第一遍：收集所有联系人的唯一标识
+        contacts.forEach((contact, index) => {
+          // 创建唯一标识：清理后的姓名+所有电话号码的组合
+          const cleanName = contact.cleanName;
+          const phoneNumbers = contact.phones
+            .filter(p => p.isValid)
+            .map(p => p.number)
+            .sort()
+            .join('|');
+          
+          const key = `${cleanName}|${phoneNumbers}`;
+          
+          if (!contactMap.has(key)) {
+            contactMap.set(key, []);
+          }
+          contactMap.get(key).push(index);
+          
+          // 单独检测姓名重复（使用清理后的姓名）
+          if (!nameDuplicateMap.has(cleanName)) {
+            nameDuplicateMap.set(cleanName, []);
+          }
+          nameDuplicateMap.get(cleanName).push(index);
+          
+          // 单独检测电话重复
+          contact.phones
+            .filter(p => p.type === '电话' && p.isValid)
+            .forEach(phone => {
+              if (!phoneDuplicateMap.has(phone.number)) {
+                phoneDuplicateMap.set(phone.number, []);
+              }
+              phoneDuplicateMap.get(phone.number).push(index);
+            });
+          
+          // 单独检测手机重复
+          contact.phones
+            .filter(p => p.type === '手机' && p.isValid)
+            .forEach(mobile => {
+              if (!mobileDuplicateMap.has(mobile.number)) {
+                mobileDuplicateMap.set(mobile.number, []);
+              }
+              mobileDuplicateMap.get(mobile.number).push(index);
+            });
+        });
+        
+        // 第二遍：标记重复的联系人
+        const duplicateIndices = new Set();
+        const duplicateInfo = [];
+        
+        contactMap.forEach((indices, key) => {
+          if (indices.length > 1) {
+            // 这个键有重复的联系人
+            indices.forEach(index => {
+              duplicateIndices.add(index);
+              
+              // 为每个重复联系人添加重复信息
+              if (!duplicateInfo[index]) {
+                duplicateInfo[index] = {
+                  nameDuplicate: null,
+                  phoneDuplicate: null,
+                  mobileDuplicate: null,
+                  fullDuplicate: { index: indices.indexOf(index) + 1, total: indices.length }
+                };
+              }
+            });
+          }
+        });
+        
+        // 处理姓名重复信息（使用清理后的姓名）
+        nameDuplicateMap.forEach((indices, cleanName) => {
+          if (indices.length > 1) {
+            indices.forEach(index => {
+              if (!duplicateInfo[index]) {
+                duplicateInfo[index] = {
+                  nameDuplicate: null,
+                  phoneDuplicate: null,
+                  mobileDuplicate: null,
+                  fullDuplicate: null
+                };
+              }
+              duplicateInfo[index].nameDuplicate = {
+                index: indices.indexOf(index) + 1,
+                total: indices.length
+              };
+            });
+          }
+        });
+        
+        // 处理电话重复信息
+        phoneDuplicateMap.forEach((indices, phone) => {
+          if (indices.length > 1) {
+            indices.forEach(index => {
+              if (!duplicateInfo[index]) {
+                duplicateInfo[index] = {
+                  nameDuplicate: null,
+                  phoneDuplicate: null,
+                  mobileDuplicate: null,
+                  fullDuplicate: null
+                };
+              }
+              duplicateInfo[index].phoneDuplicate = {
+                index: indices.indexOf(index) + 1,
+                total: indices.length
+              };
+            });
+          }
+        });
+        
+        // 处理手机重复信息
+        mobileDuplicateMap.forEach((indices, mobile) => {
+          if (indices.length > 1) {
+            indices.forEach(index => {
+              if (!duplicateInfo[index]) {
+                duplicateInfo[index] = {
+                  nameDuplicate: null,
+                  phoneDuplicate: null,
+                  mobileDuplicate: null,
+                  fullDuplicate: null
+                };
+              }
+              duplicateInfo[index].mobileDuplicate = {
+                index: indices.indexOf(index) + 1,
+                total: indices.length
+              };
+            });
+          }
+        });
+        
+        return {
+          duplicateIndices: duplicateIndices,
+          duplicateInfo: duplicateInfo
+        };
+      }
+      
+      // 处理Excel数据
+      function processExcelData(data) {
+        contacts = [];
+        collectors = [];
+        
+        if (data.length === 0) {
+          tipsEl.textContent = 'Excel文件中没有数据';
+          contactList.innerHTML = '<div class="empty-state">Excel文件中没有数据</div>';
+          return;
+        }
+        
+        // 获取表头
+        const headers = Object.keys(data[0]);
+        const columns = detectColumns(headers);
+        
+        // 显示识别的列信息
+        if (columns.name || columns.phone || columns.mobile || columns.collector || columns.debtAmount || columns.debtPeriod || columns.address) {
+          nameColumnEl.textContent = columns.name || '未识别';
+          phoneColumnEl.textContent = columns.phone || '未识别';
+          mobileColumnEl.textContent = columns.mobile || '未识别';
+          collectorColumnEl.textContent = columns.collector || '未识别';
+          debtAmountColumnEl.textContent = columns.debtAmount || '未识别';
+          debtPeriodColumnEl.textContent = columns.debtPeriod || '未识别';
+          addressColumnEl.textContent = columns.address || '未识别';
+          columnInfo.classList.remove('hidden');
+        }
+        
+        // 收集所有催费员用于筛选
+        const collectorSet = new Set();
+        
+        // 遍历Excel数据
+        data.forEach(row => {
+          const name = columns.name ? (row[columns.name] || '').toString().trim() : '';
+          const collector = columns.collector ? (row[columns.collector] || '').toString().trim() : '';
+          
+          // 处理欠费总额 - 增强的健壮性处理
+          let debtAmount = '';
+          if (columns.debtAmount && row[columns.debtAmount] !== undefined && row[columns.debtAmount] !== null) {
+            const value = row[columns.debtAmount];
+            // 处理各种可能的数据类型
+            if (typeof value === 'number') {
+              debtAmount = value.toFixed(2);
+            } else if (typeof value === 'string' && value.trim() !== '') {
+              // 尝试解析字符串为数字
+              const numValue = parseFloat(value.replace(/[^\d.-]/g, ''));
+              if (!isNaN(numValue)) {
+                debtAmount = numValue.toFixed(2);
+              } else {
+                debtAmount = value.trim();
+              }
+            }
+          }
+          
+          // 处理欠费期数
+          let debtPeriod = '';
+          if (columns.debtPeriod && row[columns.debtPeriod] !== undefined && row[columns.debtPeriod] !== null) {
+            const value = row[columns.debtPeriod];
+            if (typeof value === 'number') {
+              debtPeriod = value.toString();
+            } else if (typeof value === 'string') {
+              debtPeriod = value.toString().trim();
+            }
+          }
+          
+          const address = columns.address ? (row[columns.address] || '').toString().trim() : '';
+          
+          // 收集催费员
+          if (collector) {
+            collectorSet.add(collector);
+          }
+          
+          // 收集所有电话号码
+          const phoneNumbers = [];
+          
+          // 用于记录当前行已处理的电话号码，避免同一行内重复
+          const rowProcessedPhones = new Set();
+          
+          // 处理电话列
+          if (columns.phone && row[columns.phone]) {
+            const phoneString = row[columns.phone].toString().trim();
+            if (phoneString) {
+              const phones = phoneString.split(/[,，;；\s]+/).map(p => p.trim()).filter(p => p);
+              phones.forEach(phone => {
+                // 只对同一行内的电话号码去重
+                if (!rowProcessedPhones.has(phone)) {
+                  rowProcessedPhones.add(phone);
+                  const phoneInfo = validateAndFixPhoneNumber(phone, '电话');
+                  phoneNumbers.push(phoneInfo);
+                }
+              });
+            }
+          }
+          
+          // 处理手机列
+          if (columns.mobile && row[columns.mobile]) {
+            const mobileString = row[columns.mobile].toString().trim();
+            if (mobileString) {
+              const mobiles = mobileString.split(/[,，;；\s]+/).map(p => p.trim()).filter(p => p);
+              mobiles.forEach(mobile => {
+                // 只对同一行内的电话号码去重
+                if (!rowProcessedPhones.has(mobile)) {
+                  rowProcessedPhones.add(mobile);
+                  const phoneInfo = validateAndFixPhoneNumber(mobile, '手机');
+                  phoneNumbers.push(phoneInfo);
+                }
+              });
+            }
+          }
+          
+          // 创建联系人条目
+          if (name) {
+            contacts.push({
+              name: name, // 原始名称，包含括号和数字
+              cleanName: cleanNameForDuplicateDetection(name), // 清理后的名称，用于重复检测
+              collector: collector,
+              debtAmount: debtAmount,
+              debtPeriod: debtPeriod,
+              address: address,
+              phones: phoneNumbers,
+              showAddress: false // 控制地址显示状态
+            });
+          }
+        });
+        
+        // 检测重复联系人
+        const duplicateData = detectDuplicateContacts(contacts);
+        const duplicateIndices = duplicateData.duplicateIndices;
+        const duplicateInfo = duplicateData.duplicateInfo;
+        
+        // 标记重复联系人信息
+        contacts.forEach((contact, index) => {
+          contact.isDuplicate = duplicateIndices.has(index);
+          if (duplicateInfo[index]) {
+            contact.duplicateInfo = duplicateInfo[index];
+          }
+        });
+        
+        // 更新催费员列表
+        collectors = Array.from(collectorSet).sort();
+        updateCollectorFilter();
+        
+        // 更新界面
+        renderContactList();
+        
+        if (contacts.length === 0) {
+          tipsEl.textContent = '未找到有效的联系人数据，请检查Excel文件格式';
+        } else {
+          updateStatistics();
+        }
+      }
+      
+      // 更新筛选器
+      function updateCollectorFilter() {
+        collectorFilter.innerHTML = '<option value="all">全部催费员</option>';
+        
+        collectors.forEach(collector => {
+          const option = document.createElement('option');
+          option.value = collector;
+          option.textContent = collector;
+          collectorFilter.appendChild(option);
+        });
+        
+        // 显示筛选器
+        filterSection.classList.remove('hidden');
+      }
+      
+      // 更新统计信息
+      function updateStatistics() {
+        const selectedCollector = collectorFilter.value;
+        const filteredContacts = selectedCollector === 'all' ? 
+          contacts : contacts.filter(contact => contact.collector === selectedCollector);
+          
+        const totalPhones = filteredContacts.reduce((sum, contact) => sum + contact.phones.length, 0);
+        const validPhones = filteredContacts.reduce((sum, contact) => 
+          sum + contact.phones.filter(p => p.isValid).length, 0);
+        const autoFixedPhones = filteredContacts.reduce((sum, contact) => 
+          sum + contact.phones.filter(p => p.isAutoFixed).length, 0);
+        const duplicateContacts = filteredContacts.filter(contact => contact.isDuplicate).length;
+        
+        // 计算各类重复数量
+        const nameDuplicates = filteredContacts.filter(contact => 
+          contact.duplicateInfo && contact.duplicateInfo.nameDuplicate).length;
+        const phoneDuplicates = filteredContacts.filter(contact => 
+          contact.duplicateInfo && contact.duplicateInfo.phoneDuplicate).length;
+        const mobileDuplicates = filteredContacts.filter(contact => 
+          contact.duplicateInfo && contact.duplicateInfo.mobileDuplicate).length;
+        
+        let tipText = `已加载 ${filteredContacts.length} 个联系人，共 ${totalPhones} 个号码，其中 ${validPhones} 个有效`;
+        if (autoFixedPhones > 0) {
+          tipText += `（自动修复 ${autoFixedPhones} 个号码）`;
+        }
+        if (duplicateContacts > 0) {
+          tipText += `，发现 ${duplicateContacts} 个重复联系人`;
+        }
+        
+        // 添加重复详情统计
+        if (nameDuplicates > 0 || phoneDuplicates > 0 || mobileDuplicates > 0) {
+          tipText += `（姓名重复:${nameDuplicates}，电话重复:${phoneDuplicates}，手机重复:${mobileDuplicates}）`;
+        }
+        
+        if (selectedCollector !== 'all') {
+          tipText += ` - 筛选: ${selectedCollector}`;
+        }
+        
+        tipsEl.textContent = tipText;
+      }
+      
+      // 切换地址显示状态
+      function toggleAddress(element) {
+        const contactItem = element.closest('.contact-item');
+        const addressEl = contactItem.querySelector('.contact-address');
+        const contactIndex = Array.from(contactItem.parentNode.children).indexOf(contactItem) - 1; // 减去计数元素
+        
+        // 获取当前联系人数据
+        const selectedCollector = collectorFilter.value;
+        const filteredContacts = selectedCollector === 'all' ? 
+          contacts : contacts.filter(contact => contact.collector === selectedCollector);
+        
+        if (contactIndex >= 0 && contactIndex < filteredContacts.length) {
+          const contact = filteredContacts[contactIndex];
+          contact.showAddress = !contact.showAddress;
+          
+          if (contact.showAddress) {
+            addressEl.classList.remove('hidden');
+          } else {
+            addressEl.classList.add('hidden');
+          }
+        }
+      }
+      
+      // 渲染联系人列表
+      function renderContactList() {
+        if (contacts.length === 0) {
+          contactList.innerHTML = '<div class="empty-state">未找到有效的联系人数据</div>';
+          return;
+        }
+        
+        const selectedCollector = collectorFilter.value;
+        const filteredContacts = selectedCollector === 'all' ? 
+          contacts : contacts.filter(contact => contact.collector === selectedCollector);
+        
+        if (filteredContacts.length === 0) {
+          contactList.innerHTML = '<div class="empty-state">该催费员下没有联系人数据</div>';
+          updateStatistics();
+          return;
+        }
+        
+        contactList.innerHTML = '';
+        
+        // 添加联系人计数
+        const countEl = document.createElement('div');
+        countEl.className = 'contact-count';
+        countEl.textContent = `当前显示 ${filteredContacts.length} 个联系人`;
+        contactList.appendChild(countEl);
+        
+        filteredContacts.forEach(contact => {
+          const contactItem = document.createElement('div');
+          contactItem.className = 'contact-item' + (contact.isDuplicate ? ' duplicate-contact' : '');
+          
+          // 构建重复信息HTML
+          let duplicateInfoHTML = '';
+          if (contact.duplicateInfo) {
+            if (contact.duplicateInfo.nameDuplicate) {
+              const nd = contact.duplicateInfo.nameDuplicate;
+              duplicateInfoHTML += `<span class="duplicate-info-badge name-duplicate">姓名${nd.index}/${nd.total}</span>`;
+            }
+            if (contact.duplicateInfo.phoneDuplicate) {
+              const pd = contact.duplicateInfo.phoneDuplicate;
+              duplicateInfoHTML += `<span class="duplicate-info-badge phone-duplicate">电话${pd.index}/${pd.total}</span>`;
+            }
+            if (contact.duplicateInfo.mobileDuplicate) {
+              const md = contact.duplicateInfo.mobileDuplicate;
+              duplicateInfoHTML += `<span class="duplicate-info-badge mobile-duplicate">手机${md.index}/${md.total}</span>`;
+            }
+            if (contact.duplicateInfo.fullDuplicate) {
+              const fd = contact.duplicateInfo.fullDuplicate;
+              duplicateInfoHTML += `<span class="duplicate-badge">完全重复${fd.index}/${fd.total}</span>`;
+            }
+          }
+          
+          // 构建欠费信息HTML
+          let debtInfoHTML = '';
+          if (contact.debtAmount || contact.debtPeriod) {
+            debtInfoHTML = `
+              <div class="contact-debt-info">
+                ${contact.debtAmount ? `<div class="debt-amount">欠费: ${contact.debtAmount}元</div>` : ''}
+                ${contact.debtPeriod ? `<div class="debt-period">欠费期数: ${contact.debtPeriod}期</div>` : ''}
+              </div>
+            `;
+          }
+          
+          // 构建电话号码HTML
+          let phonesHTML = '';
+          if (contact.phones.length > 0) {
+            contact.phones.forEach(phone => {
+              if (phone.isValid) {
+                const numberClass = phone.isAutoFixed ? 'phone-number auto-fixed' : 'phone-number';
+                phonesHTML += `
+                  <div class="phone-row">
+                    <div class="phone-type">${phone.type}</div>
+                    <div class="${numberClass}">
+                      ${phone.number}
+                      ${phone.isAutoFixed ? '<span style="font-size:12px;color:#d35400;">(添加0769区号)</span>' : ''}
+                    </div>
+                    <div class="phone-actions">
+                      <a href="tel:${phone.number}" class="btn primary call-btn">拨打电话</a>
+                    </div>
+                  </div>
+                `;
+              } else {
+                phonesHTML += `
+                  <div class="phone-row">
+                    <div class="phone-type">${phone.type}</div>
+                    <div class="phone-number">${phone.original}</div>
+                    <div class="phone-actions">
+                      <span class="btn gray" style="opacity:0.5">无效号码</span>
+                    </div>
+                  </div>
+                `;
+              }
+            });
+          } else {
+            phonesHTML = `<div class="no-phones">无有效电话号码</div>`;
+          }
+          
+          contactItem.innerHTML = `
+            <div class="contact-name" onclick="toggleAddress(this)">
+              <div class="contact-name-main">
+                ${contact.name} <!-- 显示原始名称，包含括号和数字 -->
+                ${contact.collector ? `<span class="collector-badge">${contact.collector}</span>` : ''}
+                ${duplicateInfoHTML}
+              </div>
+              ${debtInfoHTML}
+            </div>
+            ${contact.address ? `
+              <div class="contact-address ${contact.showAddress ? '' : 'hidden'}">
+                用电地址: ${contact.address}
+              </div>
+            ` : ''}
+            <div class="phone-section">
+              ${phonesHTML}
+            </div>
+          `;
+          
+          contactList.appendChild(contactItem);
+        });
+        
+        // 更新统计信息
+        updateStatistics();
+        
+        // 绑定拨打电话按钮事件
+        document.querySelectorAll('.call-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            // 检测浏览器环境
+            const ua = navigator.userAgent || '';
+            const isWeChat = /MicroMessenger/i.test(ua);
+            const isUC = /UCBrowser/i.test(ua);
+            
+            if (isWeChat) {
+              e.preventDefault();
+              tipsEl.textContent = '您在微信内打开，无法直接拨号，请使用系统浏览器打开此页面。';
+            } else if (isUC) {
+              e.preventDefault();
+              tipsEl.textContent = 'UC 浏览器可能拦截自动跳转，请直接点击拨号按钮完成呼叫。';
+            }
+          });
+        });
+      }
+      
+      // 将toggleAddress函数暴露给全局作用域
+      window.toggleAddress = toggleAddress;
+      
+      // 检测浏览器环境
+      const ua = navigator.userAgent || '';
+      const isWeChat = /MicroMessenger/i.test(ua);
+      const isUC = /UCBrowser/i.test(ua);
+      
+      // 针对特殊浏览器的提示
+      if (isWeChat) {
+        tipsEl.textContent = '您在微信内打开，可能无法自动跳转拨号，请使用系统浏览器打开此页面。';
+      } else if (isUC) {
+        tipsEl.textContent = 'UC 浏览器可能拦截自动跳转，请直接点击拨号按钮完成呼叫。';
+      }
+    })();
+  </script>
 </body>
 </html>
