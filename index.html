@@ -62,6 +62,9 @@
     .filter-select {padding: 8px 12px; border: 1px solid #3B78DD; border-radius: 6px; font-size: 14px; min-width: 150px;}
     .collector-badge {display: inline-block; background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px;}
     
+    /* 备注样式 */
+    .note-badge {display: inline-block; background: #f3e5f5; color: #7b1fa2; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+    
     /* 重复联系人高亮样式 */
     .duplicate-contact {background-color: #fff8e1; border-left: 4px solid #ffc107;}
     .duplicate-badge {display: inline-block; background: #ffecb3; color: #ff8f00; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px; font-weight: bold;}
@@ -72,8 +75,24 @@
     .phone-duplicate {background: #c8e6c9; color: #2e7d32;}
     .mobile-duplicate {background: #bbdefb; color: #1565c0;}
     
-    /* 备注样式 */
-    .remark-badge {display: inline-block; background: #f0f0f0; color: #666; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 8px; font-style: italic; border: 1px dashed #ccc;}
+    /* 加载状态 */
+    .loading {text-align: center; padding: 20px; color: #3B78DD;}
+    .loading::after {content: '...'; animation: dots 1.5s steps(4, end) infinite;}
+    @keyframes dots {
+      0%, 20% {color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0);}
+      40% {color: #3B78DD; text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0);}
+      60% {text-shadow: .25em 0 0 #3B78DD, .5em 0 0 rgba(0,0,0,0);}
+      80%, 100% {text-shadow: .25em 0 0 #3B78DD, .5em 0 0 #3B78DD;}
+    }
+    
+    /* 错误提示样式 */
+    .error-message {background: #ffebee; border: 1px solid #ef9a9a; color: #c62828; padding: 15px; border-radius: 6px; margin: 10px 0; text-align: center;}
+    
+    /* 工作表选择样式 */
+    .sheet-selector {margin: 15px 0; text-align: center;}
+    .sheet-selector label {font-weight: bold; margin-right: 10px;}
+    .sheet-selector select {padding: 8px 12px; border: 1px solid #3B78DD; border-radius: 6px; font-size: 14px; min-width: 200px;}
+    .sheet-info {text-align: center; color: #666; font-size: 14px; margin-top: 5px;}
   </style>
 </head>
 <body>
@@ -83,8 +102,17 @@
     
     <div class="file-upload">
       <label for="excelFile" class="file-label">选择Excel文件</label>
-      <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls">
+      <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls, .csv">
       <div id="fileName" class="file-name">未选择文件</div>
+    </div>
+    
+    <!-- 工作表选择器 -->
+    <div id="sheetSelector" class="sheet-selector hidden">
+      <label for="sheetSelect">选择工作表：</label>
+      <select id="sheetSelect" class="filter-select">
+        <option value="">请选择工作表</option>
+      </select>
+      <div id="sheetInfo" class="sheet-info"></div>
     </div>
 
     <section class="card">
@@ -102,7 +130,7 @@
         <p class="bold mt-10">第二步：选择要联系的人</p>
         
         <div id="columnInfo" class="column-info hidden">
-          已识别列：<span id="nameColumn">用户名称</span>、<span id="phoneColumn">电话</span>、<span id="mobileColumn">手机</span>、<span id="collectorColumn">催费员</span>、<span id="debtAmountColumn">欠费总额</span>、<span id="debtPeriodColumn">欠费期数</span>、<span id="addressColumn">用电地址</span>、<span id="remarkColumn">备注</span>
+          已识别列：<span id="nameColumn">用户名称</span>、<span id="phoneColumn">电话</span>、<span id="mobileColumn">手机</span>、<span id="collectorColumn">催费员</span>、<span id="noteColumn">备注</span>、<span id="debtAmountColumn">欠费总额</span>、<span id="debtPeriodColumn">欠费期数</span>、<span id="addressColumn">用电地址</span>
         </div>
         
         <div id="contactList" class="contact-list">
@@ -135,16 +163,21 @@
       const phoneColumnEl = document.getElementById('phoneColumn');
       const mobileColumnEl = document.getElementById('mobileColumn');
       const collectorColumnEl = document.getElementById('collectorColumn');
+      const noteColumnEl = document.getElementById('noteColumn');
       const debtAmountColumnEl = document.getElementById('debtAmountColumn');
       const debtPeriodColumnEl = document.getElementById('debtPeriodColumn');
       const addressColumnEl = document.getElementById('addressColumn');
-      const remarkColumnEl = document.getElementById('remarkColumn'); // 新增备注列元素
       const filterSection = document.getElementById('filterSection');
       const collectorFilter = document.getElementById('collectorFilter');
+      const sheetSelector = document.getElementById('sheetSelector');
+      const sheetSelect = document.getElementById('sheetSelect');
+      const sheetInfo = document.getElementById('sheetInfo');
       
       // 存储联系人数据
       let contacts = [];
       let collectors = [];
+      let currentWorkbook = null;
+      let currentSheetData = {};
       
       // 文件选择事件
       fileInput.addEventListener('change', function(e) {
@@ -152,45 +185,334 @@
         if (!file) return;
         
         fileName.textContent = `已选择: ${file.name}`;
+        contactList.innerHTML = '<div class="loading">正在读取文件</div>';
+        tipsEl.textContent = '正在处理文件，请稍候...';
+        
+        // 重置工作表选择器
+        sheetSelect.innerHTML = '<option value="">请选择工作表</option>';
+        sheetSelector.classList.add('hidden');
+        columnInfo.classList.add('hidden');
+        filterSection.classList.add('hidden');
         
         const reader = new FileReader();
         reader.onload = function(e) {
           try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            
-            // 获取第一个工作表
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            // 转换为JSON
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet, {defval: ""});
-            
-            // 处理数据
-            processExcelData(jsonData);
+            if (file.name.toLowerCase().endsWith('.csv')) {
+              // CSV文件直接处理
+              processCSVFile(e.target.result, file.name);
+            } else {
+              // Excel文件先读取所有工作表
+              readExcelWorkbook(e.target.result, file.name);
+            }
           } catch (error) {
-            console.error('解析Excel文件出错:', error);
-            tipsEl.textContent = '解析Excel文件出错，请检查文件格式';
-            contactList.innerHTML = '<div class="empty-state">文件格式错误，请重新选择</div>';
+            console.error('读取文件出错:', error);
+            showError(`读取文件出错: ${error.message}`);
           }
         };
-        reader.readAsArrayBuffer(file);
+        
+        reader.onerror = function() {
+          showError('读取文件失败，请检查文件是否损坏');
+        };
+        
+        // 根据文件类型选择读取方式
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          reader.readAsText(file, 'UTF-8');
+        } else {
+          reader.readAsArrayBuffer(file);
+        }
       });
+      
+      // 读取Excel工作簿
+      function readExcelWorkbook(data, filename) {
+        try {
+          const workbook = XLSX.read(data, {
+            type: filename.toLowerCase().endsWith('.xlsx') ? 'array' : 'binary',
+            cellDates: true,
+            cellNF: false,
+            cellText: false,
+            raw: false,
+            dateNF: 'yyyy-mm-dd',
+            sheetStubs: true
+          });
+          
+          currentWorkbook = workbook;
+          currentSheetData = {};
+          
+          // 获取所有工作表名称
+          const sheetNames = workbook.SheetNames;
+          
+          if (sheetNames.length === 0) {
+            showError('Excel文件中没有工作表');
+            return;
+          }
+          
+          // 如果只有一个工作表，直接处理
+          if (sheetNames.length === 1) {
+            processExcelSheet(sheetNames[0]);
+            return;
+          }
+          
+          // 多个工作表，显示选择器
+          contactList.innerHTML = '<div class="loading">检测到多个工作表，请选择包含联系人数据的工作表</div>';
+          sheetSelect.innerHTML = '<option value="">请选择工作表</option>';
+          
+          // 填充工作表选项
+          sheetNames.forEach((sheetName, index) => {
+            const option = document.createElement('option');
+            option.value = sheetName;
+            option.textContent = `${sheetName} (工作表${index + 1})`;
+            sheetSelect.appendChild(option);
+          });
+          
+          sheetSelector.classList.remove('hidden');
+          tipsEl.textContent = `检测到 ${sheetNames.length} 个工作表，请选择包含联系人数据的工作表`;
+          
+        } catch (error) {
+          console.error('解析Excel文件出错:', error);
+          showError(`解析Excel文件出错: ${error.message}`);
+        }
+      }
+      
+      // 工作表选择事件
+      sheetSelect.addEventListener('change', function() {
+        const selectedSheet = this.value;
+        if (!selectedSheet) return;
+        
+        processExcelSheet(selectedSheet);
+      });
+      
+      // 处理选中的Excel工作表
+      function processExcelSheet(sheetName) {
+        if (!currentWorkbook) return;
+        
+        contactList.innerHTML = '<div class="loading">正在处理工作表数据</div>';
+        tipsEl.textContent = '正在处理数据，请稍候...';
+        
+        const worksheet = currentWorkbook.Sheets[sheetName];
+        
+        // 检查工作表是否已经处理过
+        if (currentSheetData[sheetName]) {
+          const cachedData = currentSheetData[sheetName];
+          contacts = cachedData.contacts;
+          collectors = cachedData.collectors;
+          renderContactList();
+          updateStatistics();
+          return;
+        }
+        
+        try {
+          // 尝试不同的读取方式
+          let jsonData;
+          try {
+            // 方式1：标准方式读取
+            jsonData = XLSX.utils.sheet_to_json(worksheet, {defval: "", raw: false});
+          } catch (e1) {
+            console.warn('标准方式读取失败，尝试原始方式:', e1);
+            try {
+              // 方式2：原始方式读取
+              jsonData = XLSX.utils.sheet_to_json(worksheet, {defval: "", raw: true});
+            } catch (e2) {
+              console.warn('原始方式读取失败，尝试手动解析:', e2);
+              // 方式3：手动解析
+              jsonData = manualParseSheet(worksheet);
+            }
+          }
+          
+          if (!jsonData || jsonData.length === 0) {
+            showError(`工作表 "${sheetName}" 中没有数据或数据格式不正确`);
+            return;
+          }
+          
+          // 处理数据
+          const result = processExcelData(jsonData, sheetName);
+          
+          // 缓存数据
+          currentSheetData[sheetName] = {
+            contacts: result.contacts,
+            collectors: result.collectors
+          };
+          
+          contacts = result.contacts;
+          collectors = result.collectors;
+          
+          // 更新工作表信息
+          sheetInfo.textContent = `已选择: ${sheetName} (${result.contacts.length} 个联系人)`;
+          
+          // 渲染联系人列表
+          renderContactList();
+          updateStatistics();
+          
+        } catch (error) {
+          console.error(`处理工作表 "${sheetName}" 出错:`, error);
+          showError(`处理工作表 "${sheetName}" 出错: ${error.message}`);
+        }
+      }
+      
+      // 处理CSV文件
+      function processCSVFile(csvText, filename) {
+        try {
+          const jsonData = processCSVData(csvText);
+          
+          if (!jsonData || jsonData.length === 0) {
+            showError('CSV文件中没有数据或数据格式不正确');
+            return;
+          }
+          
+          // 处理数据
+          const result = processExcelData(jsonData, filename);
+          contacts = result.contacts;
+          collectors = result.collectors;
+          
+          // 渲染联系人列表
+          renderContactList();
+          updateStatistics();
+          
+        } catch (error) {
+          console.error('解析CSV文件出错:', error);
+          showError(`解析CSV文件出错: ${error.message}`);
+        }
+      }
+      
+      // 处理CSV数据
+      function processCSVData(csvText) {
+        const lines = csvText.split('\n');
+        if (lines.length < 2) return [];
+        
+        // 检测分隔符
+        const firstLine = lines[0];
+        let delimiter = ',';
+        if (firstLine.includes(';') && !firstLine.includes(',')) {
+          delimiter = ';';
+        } else if (firstLine.includes('\t')) {
+          delimiter = '\t';
+        }
+        
+        // 解析标题行
+        const headers = firstLine.split(delimiter).map(h => h.trim().replace(/^"|"$/g, ''));
+        
+        // 解析数据行
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          
+          const values = [];
+          let inQuotes = false;
+          let currentValue = '';
+          
+          for (let j = 0; j < line.length; j++) {
+            const char = line[j];
+            
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === delimiter && !inQuotes) {
+              values.push(currentValue.trim().replace(/^"|"$/g, ''));
+              currentValue = '';
+            } else {
+              currentValue += char;
+            }
+          }
+          
+          values.push(currentValue.trim().replace(/^"|"$/g, ''));
+          
+          const row = {};
+          headers.forEach((header, index) => {
+            if (header && values[index] !== undefined) {
+              row[header] = values[index];
+            }
+          });
+          
+          if (Object.keys(row).length > 0) {
+            data.push(row);
+          }
+        }
+        
+        return data;
+      }
+      
+      // 手动解析工作表（备用方案）
+      function manualParseSheet(worksheet) {
+        const data = [];
+        const range = XLSX.utils.decode_range(worksheet['!ref']);
+        
+        // 获取标题行
+        const headers = [];
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({r: range.s.r, c: C});
+          const cell = worksheet[cellAddress];
+          headers.push(cell ? (cell.v || '').toString().trim() : `Column${C+1}`);
+        }
+        
+        // 获取数据行
+        for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+          const row = {};
+          let hasData = false;
+          
+          for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({r: R, c: C});
+            const cell = worksheet[cellAddress];
+            
+            if (cell) {
+              let value = '';
+              if (cell.v !== undefined && cell.v !== null) {
+                if (cell.t === 'd' && cell.v instanceof Date) {
+                  value = cell.v.toLocaleDateString();
+                } else if (cell.t === 'n') {
+                  value = cell.v.toString();
+                } else {
+                  value = cell.v.toString();
+                }
+              } else if (cell.w !== undefined) {
+                value = cell.w;
+              }
+              
+              if (value !== '') {
+                row[headers[C]] = value.trim();
+                hasData = true;
+              }
+            }
+          }
+          
+          if (hasData) {
+            data.push(row);
+          }
+        }
+        
+        return data;
+      }
+      
+      // 显示错误信息
+      function showError(message) {
+        contactList.innerHTML = `
+          <div class="error-message">
+            <strong>错误:</strong> ${message}
+            <br><br>
+            <small>请检查：<br>
+            1. 文件格式是否正确（支持.xlsx, .xls, .csv）<br>
+            2. 文件是否损坏<br>
+            3. 文件是否包含有效数据<br>
+            4. 尝试重新保存文件再上传</small>
+          </div>
+        `;
+        tipsEl.textContent = '文件处理失败，请检查文件格式';
+      }
       
       // 筛选器变化事件
       collectorFilter.addEventListener('change', function() {
         renderContactList();
       });
       
-      // 识别列名
+      // 识别列名，唯一的
       function detectColumns(headers) {
         const columnMap = {
           name: ['用户名称'],
           phone: ['电话'],
           mobile: ['手机'],
           collector: ['催费员'],
+          note: ['备注'],
           debtAmount: ['欠费总额'],
           debtPeriod: ['欠费期数'],
-          address: ['用电地址'],
-          remark: ['备注'] // 新增备注列
+          address: ['用电地址']
         };
         
         const result = {
@@ -198,54 +520,72 @@
           phone: '',
           mobile: '',
           collector: '',
+          note: '',
           debtAmount: '',
           debtPeriod: '',
-          address: '',
-          remark: '' // 新增备注列
+          address: ''
         };
         
         // 查找匹配的列名
         headers.forEach(header => {
+          if (!header || typeof header !== 'string') return;
+          
           const headerLower = header.toLowerCase().replace(/\s+/g, '');
           
           // 检查名称列
-          if (!result.name && columnMap.name.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+          if (!result.name && columnMap.name.some(col => 
+            headerLower.includes(col.toLowerCase().replace(/\s+/g, '')) || 
+            header === col)) {
             result.name = header;
           }
           
           // 检查电话列
-          if (!result.phone && columnMap.phone.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+          if (!result.phone && columnMap.phone.some(col => 
+            headerLower.includes(col.toLowerCase().replace(/\s+/g, '')) || 
+            header === col)) {
             result.phone = header;
           }
           
           // 检查手机列
-          if (!result.mobile && columnMap.mobile.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+          if (!result.mobile && columnMap.mobile.some(col => 
+            headerLower.includes(col.toLowerCase().replace(/\s+/g, '')) || 
+            header === col)) {
             result.mobile = header;
           }
           
           // 检查催费员列
-          if (!result.collector && columnMap.collector.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+          if (!result.collector && columnMap.collector.some(col => 
+            headerLower.includes(col.toLowerCase().replace(/\s+/g, '')) || 
+            header === col)) {
             result.collector = header;
           }
           
+          // 检查备注列
+          if (!result.note && columnMap.note.some(col => 
+            headerLower.includes(col.toLowerCase().replace(/\s+/g, '')) || 
+            header === col)) {
+            result.note = header;
+          }
+          
           // 检查欠费总额列
-          if (!result.debtAmount && columnMap.debtAmount.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+          if (!result.debtAmount && columnMap.debtAmount.some(col => 
+            headerLower.includes(col.toLowerCase().replace(/\s+/g, '')) || 
+            header === col)) {
             result.debtAmount = header;
           }
           
           // 检查欠费期数列
-          if (!result.debtPeriod && columnMap.debtPeriod.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+          if (!result.debtPeriod && columnMap.debtPeriod.some(col => 
+            headerLower.includes(col.toLowerCase().replace(/\s+/g, '')) || 
+            header === col)) {
             result.debtPeriod = header;
           }
           
           // 检查用电地址列
-          if (!result.address && columnMap.address.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+          if (!result.address && columnMap.address.some(col => 
+            headerLower.includes(col.toLowerCase().replace(/\s+/g, '')) || 
+            header === col)) {
             result.address = header;
-          }
-          
-          // 检查备注列
-          if (!result.remark && columnMap.remark.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
-            result.remark = header;
           }
         });
         
@@ -255,6 +595,18 @@
       // 电话号码验证和修复函数
       function validateAndFixPhoneNumber(phone, type) {
         const originalPhone = phone;
+        if (!phone || typeof phone !== 'string') {
+          return {
+            original: originalPhone,
+            number: '',
+            isValid: false,
+            isAutoFixed: false,
+            type: type
+          };
+        }
+        
+        // 清理号码中的空格和特殊字符
+        const cleanPhone = phone.replace(/[\s\-\(\)\.]/g, '');
         
         // 手机号验证（11位数字，以1开头）
         const mobileRegex = /^1[3-9]\d{9}$/;
@@ -266,11 +618,8 @@
         const shortNumberRegex = /^\d{7,8}$/;
         
         let isValid = false;
-        let fixedNumber = phone;
+        let fixedNumber = cleanPhone;
         let isAutoFixed = false;
-        
-        // 清理号码中的空格和特殊字符
-        const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
         
         // 检查手机号
         if (mobileRegex.test(cleanPhone)) {
@@ -280,7 +629,7 @@
         // 检查带区号的固话
         else if (landlineWithAreaRegex.test(cleanPhone)) {
           isValid = true;
-          fixedNumber = cleanPhone.replace(/^0/, '0'); // 确保区号格式正确
+          fixedNumber = cleanPhone.replace(/-/g, '');
         }
         // 检查是否为7-8位数字（可能是缺少区号的固话）
         else if (shortNumberRegex.test(cleanPhone)) {
@@ -301,7 +650,7 @@
       
       // 去除括号及其内容和数字的函数
       function cleanNameForDuplicateDetection(text) {
-        if (!text) return text;
+        if (!text || typeof text !== 'string') return '';
         // 去除中文括号和英文括号及其内容
         let cleaned = text.replace(/[（(].*?[）)]/g, '');
         // 去除所有数字
@@ -452,30 +801,35 @@
       }
       
       // 处理Excel数据
-      function processExcelData(data) {
-        contacts = [];
-        collectors = [];
+      function processExcelData(data, sheetName) {
+        const localContacts = [];
+        const localCollectors = [];
         
-        if (data.length === 0) {
-          tipsEl.textContent = 'Excel文件中没有数据';
-          contactList.innerHTML = '<div class="empty-state">Excel文件中没有数据</div>';
-          return;
+        if (!data || !Array.isArray(data) || data.length === 0) {
+          return { contacts: [], collectors: [] };
         }
         
         // 获取表头
-        const headers = Object.keys(data[0]);
+        const firstRow = data[0];
+        const headers = Object.keys(firstRow);
+        
+        if (headers.length === 0) {
+          return { contacts: [], collectors: [] };
+        }
+        
         const columns = detectColumns(headers);
         
         // 显示识别的列信息
-        if (columns.name || columns.phone || columns.mobile || columns.collector || columns.debtAmount || columns.debtPeriod || columns.address || columns.remark) {
+        if (columns.name || columns.phone || columns.mobile || columns.collector || columns.note || 
+            columns.debtAmount || columns.debtPeriod || columns.address) {
           nameColumnEl.textContent = columns.name || '未识别';
           phoneColumnEl.textContent = columns.phone || '未识别';
           mobileColumnEl.textContent = columns.mobile || '未识别';
           collectorColumnEl.textContent = columns.collector || '未识别';
+          noteColumnEl.textContent = columns.note || '未识别';
           debtAmountColumnEl.textContent = columns.debtAmount || '未识别';
           debtPeriodColumnEl.textContent = columns.debtPeriod || '未识别';
           addressColumnEl.textContent = columns.address || '未识别';
-          remarkColumnEl.textContent = columns.remark || '未识别'; // 显示备注列
           columnInfo.classList.remove('hidden');
         }
         
@@ -483,110 +837,93 @@
         const collectorSet = new Set();
         
         // 遍历Excel数据
+        let validContacts = 0;
         data.forEach(row => {
-          const name = columns.name ? (row[columns.name] || '').toString().trim() : '';
-          const collector = columns.collector ? (row[columns.collector] || '').toString().trim() : '';
-          
-          // 处理备注列
-          const remark = columns.remark ? (row[columns.remark] || '').toString().trim() : '';
-          
-          // 处理欠费总额 - 增强的健壮性处理
-          let debtAmount = '';
-          if (columns.debtAmount && row[columns.debtAmount] !== undefined && row[columns.debtAmount] !== null) {
-            const value = row[columns.debtAmount];
-            // 处理各种可能的数据类型
-            if (typeof value === 'number') {
-              debtAmount = value.toFixed(2);
-            } else if (typeof value === 'string' && value.trim() !== '') {
-              // 尝试解析字符串为数字
-              const numValue = parseFloat(value.replace(/[^\d.-]/g, ''));
-              if (!isNaN(numValue)) {
-                debtAmount = numValue.toFixed(2);
-              } else {
-                debtAmount = value.trim();
+          try {
+            const name = columns.name ? safeGetValue(row[columns.name]) : '';
+            const collector = columns.collector ? safeGetValue(row[columns.collector]) : '';
+            const note = columns.note ? safeGetValue(row[columns.note]) : '';
+            
+            // 处理欠费总额 - 增强的健壮性处理
+            let debtAmount = '';
+            if (columns.debtAmount && row[columns.debtAmount] !== undefined && row[columns.debtAmount] !== null) {
+              debtAmount = formatNumberValue(row[columns.debtAmount]);
+            }
+            
+            // 处理欠费期数
+            let debtPeriod = '';
+            if (columns.debtPeriod && row[columns.debtPeriod] !== undefined && row[columns.debtPeriod] !== null) {
+              debtPeriod = formatNumberValue(row[columns.debtPeriod], false);
+            }
+            
+            const address = columns.address ? safeGetValue(row[columns.address]) : '';
+            
+            // 收集催费员
+            if (collector) {
+              collectorSet.add(collector);
+            }
+            
+            // 收集所有电话号码
+            const phoneNumbers = [];
+            const rowProcessedPhones = new Set(); // 避免同一行内重复
+            
+            // 处理电话列
+            if (columns.phone && row[columns.phone] !== undefined && row[columns.phone] !== null) {
+              const phoneValue = safeGetValue(row[columns.phone]);
+              if (phoneValue) {
+                processPhoneString(phoneValue, '电话', phoneNumbers, rowProcessedPhones);
               }
             }
-          }
-          
-          // 处理欠费期数
-          let debtPeriod = '';
-          if (columns.debtPeriod && row[columns.debtPeriod] !== undefined && row[columns.debtPeriod] !== null) {
-            const value = row[columns.debtPeriod];
-            if (typeof value === 'number') {
-              debtPeriod = value.toString();
-            } else if (typeof value === 'string') {
-              debtPeriod = value.toString().trim();
+            
+            // 处理手机列
+            if (columns.mobile && row[columns.mobile] !== undefined && row[columns.mobile] !== null) {
+              const mobileValue = safeGetValue(row[columns.mobile]);
+              if (mobileValue) {
+                processPhoneString(mobileValue, '手机', phoneNumbers, rowProcessedPhones);
+              }
             }
-          }
-          
-          const address = columns.address ? (row[columns.address] || '').toString().trim() : '';
-          
-          // 收集催费员
-          if (collector) {
-            collectorSet.add(collector);
-          }
-          
-          // 收集所有电话号码
-          const phoneNumbers = [];
-          
-          // 用于记录当前行已处理的电话号码，避免同一行内重复
-          const rowProcessedPhones = new Set();
-          
-          // 处理电话列
-          if (columns.phone && row[columns.phone]) {
-            const phoneString = row[columns.phone].toString().trim();
-            if (phoneString) {
-              const phones = phoneString.split(/[,，;；\s]+/).map(p => p.trim()).filter(p => p);
-              phones.forEach(phone => {
-                // 只对同一行内的电话号码去重
-                if (!rowProcessedPhones.has(phone)) {
-                  rowProcessedPhones.add(phone);
-                  const phoneInfo = validateAndFixPhoneNumber(phone, '电话');
-                  phoneNumbers.push(phoneInfo);
+            
+            // 如果没有识别到专门的电话列，尝试从所有列中查找电话号码
+            if (phoneNumbers.length === 0) {
+              headers.forEach(header => {
+                const value = safeGetValue(row[header]);
+                if (value && /^[\d\s\-\(\)]{7,15}$/.test(value.replace(/[\s\-\(\)]/g, ''))) {
+                  processPhoneString(value, '其他', phoneNumbers, rowProcessedPhones);
                 }
               });
             }
-          }
-          
-          // 处理手机列
-          if (columns.mobile && row[columns.mobile]) {
-            const mobileString = row[columns.mobile].toString().trim();
-            if (mobileString) {
-              const mobiles = mobileString.split(/[,，;；\s]+/).map(p => p.trim()).filter(p => p);
-              mobiles.forEach(mobile => {
-                // 只对同一行内的电话号码去重
-                if (!rowProcessedPhones.has(mobile)) {
-                  rowProcessedPhones.add(mobile);
-                  const phoneInfo = validateAndFixPhoneNumber(mobile, '手机');
-                  phoneNumbers.push(phoneInfo);
-                }
+            
+            // 创建联系人条目
+            if (name) {
+              localContacts.push({
+                name: name, // 原始名称，包含括号和数字
+                cleanName: cleanNameForDuplicateDetection(name), // 清理后的名称，用于重复检测
+                collector: collector,
+                note: note,
+                debtAmount: debtAmount,
+                debtPeriod: debtPeriod,
+                address: address,
+                phones: phoneNumbers,
+                showAddress: false // 控制地址显示状态
               });
+              validContacts++;
             }
-          }
-          
-          // 创建联系人条目
-          if (name) {
-            contacts.push({
-              name: name, // 原始名称，包含括号和数字
-              cleanName: cleanNameForDuplicateDetection(name), // 清理后的名称，用于重复检测
-              collector: collector,
-              remark: remark, // 新增备注信息
-              debtAmount: debtAmount,
-              debtPeriod: debtPeriod,
-              address: address,
-              phones: phoneNumbers,
-              showAddress: false // 控制地址显示状态
-            });
+          } catch (error) {
+            console.warn('处理行数据时出错:', error, row);
           }
         });
         
+        if (validContacts === 0) {
+          return { contacts: [], collectors: [] };
+        }
+        
         // 检测重复联系人
-        const duplicateData = detectDuplicateContacts(contacts);
+        const duplicateData = detectDuplicateContacts(localContacts);
         const duplicateIndices = duplicateData.duplicateIndices;
         const duplicateInfo = duplicateData.duplicateInfo;
         
         // 标记重复联系人信息
-        contacts.forEach((contact, index) => {
+        localContacts.forEach((contact, index) => {
           contact.isDuplicate = duplicateIndices.has(index);
           if (duplicateInfo[index]) {
             contact.duplicateInfo = duplicateInfo[index];
@@ -594,17 +931,64 @@
         });
         
         // 更新催费员列表
-        collectors = Array.from(collectorSet).sort();
-        updateCollectorFilter();
+        localCollectors.push(...Array.from(collectorSet).sort());
         
-        // 更新界面
-        renderContactList();
+        return {
+          contacts: localContacts,
+          collectors: localCollectors
+        };
+      }
+      
+      // 安全获取值
+      function safeGetValue(value) {
+        if (value === undefined || value === null) return '';
+        if (typeof value === 'string') return value.trim();
+        if (typeof value === 'number') return value.toString();
+        if (typeof value === 'boolean') return value ? '是' : '否';
+        if (value instanceof Date) return value.toLocaleDateString();
+        return String(value).trim();
+      }
+      
+      // 格式化数字值
+      function formatNumberValue(value, isCurrency = true) {
+        if (value === undefined || value === null || value === '') return '';
         
-        if (contacts.length === 0) {
-          tipsEl.textContent = '未找到有效的联系人数据，请检查Excel文件格式';
-        } else {
-          updateStatistics();
+        if (typeof value === 'number') {
+          return isCurrency ? value.toFixed(2) : value.toString();
         }
+        
+        if (typeof value === 'string') {
+          const str = value.trim();
+          if (!str) return '';
+          
+          // 尝试提取数字
+          const numMatch = str.match(/-?\d+(\.\d+)?/);
+          if (numMatch) {
+            const num = parseFloat(numMatch[0]);
+            if (!isNaN(num)) {
+              return isCurrency ? num.toFixed(2) : Math.round(num).toString();
+            }
+          }
+          return str;
+        }
+        
+        return String(value);
+      }
+      
+      // 处理电话号码字符串
+      function processPhoneString(phoneString, type, phoneNumbers, processedSet) {
+        if (!phoneString) return;
+        
+        // 分割多个电话号码
+        const phones = phoneString.split(/[,，;；\s]+/).map(p => p.trim()).filter(p => p);
+        phones.forEach(phone => {
+          // 只对同一行内的电话号码去重
+          if (!processedSet.has(phone)) {
+            processedSet.add(phone);
+            const phoneInfo = validateAndFixPhoneNumber(phone, type);
+            phoneNumbers.push(phoneInfo);
+          }
+        });
       }
       
       // 更新筛选器
@@ -736,6 +1120,12 @@
             }
           }
           
+          // 构建备注信息HTML
+          let noteHTML = '';
+          if (contact.note) {
+            noteHTML = `<span class="note-badge" title="${contact.note}">${contact.note}</span>`;
+          }
+          
           // 构建欠费信息HTML
           let debtInfoHTML = '';
           if (contact.debtAmount || contact.debtPeriod) {
@@ -785,8 +1175,8 @@
             <div class="contact-name" onclick="toggleAddress(this)">
               <div class="contact-name-main">
                 ${contact.name} <!-- 显示原始名称，包含括号和数字 -->
-                ${contact.remark ? `<span class="remark-badge">${contact.remark}</span>` : ''}
                 ${contact.collector ? `<span class="collector-badge">${contact.collector}</span>` : ''}
+                ${noteHTML}
                 ${duplicateInfoHTML}
               </div>
               ${debtInfoHTML}
@@ -803,6 +1193,9 @@
           
           contactList.appendChild(contactItem);
         });
+        
+        // 更新筛选器
+        updateCollectorFilter();
         
         // 更新统计信息
         updateStatistics();
