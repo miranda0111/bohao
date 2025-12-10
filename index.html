@@ -71,6 +71,9 @@
     .name-duplicate {background: #ffcdd2; color: #c62828;}
     .phone-duplicate {background: #c8e6c9; color: #2e7d32;}
     .mobile-duplicate {background: #bbdefb; color: #1565c0;}
+    
+    /* 备注样式 */
+    .remark-badge {display: inline-block; background: #f0f0f0; color: #666; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 8px; font-style: italic; border: 1px dashed #ccc;}
   </style>
 </head>
 <body>
@@ -99,7 +102,7 @@
         <p class="bold mt-10">第二步：选择要联系的人</p>
         
         <div id="columnInfo" class="column-info hidden">
-          已识别列：<span id="nameColumn">用户名称</span>、<span id="phoneColumn">电话</span>、<span id="mobileColumn">手机</span>、<span id="collectorColumn">催费员</span>、<span id="debtAmountColumn">欠费总额</span>、<span id="debtPeriodColumn">欠费期数</span>、<span id="addressColumn">用电地址</span>
+          已识别列：<span id="nameColumn">用户名称</span>、<span id="phoneColumn">电话</span>、<span id="mobileColumn">手机</span>、<span id="collectorColumn">催费员</span>、<span id="debtAmountColumn">欠费总额</span>、<span id="debtPeriodColumn">欠费期数</span>、<span id="addressColumn">用电地址</span>、<span id="remarkColumn">备注</span>
         </div>
         
         <div id="contactList" class="contact-list">
@@ -135,6 +138,7 @@
       const debtAmountColumnEl = document.getElementById('debtAmountColumn');
       const debtPeriodColumnEl = document.getElementById('debtPeriodColumn');
       const addressColumnEl = document.getElementById('addressColumn');
+      const remarkColumnEl = document.getElementById('remarkColumn'); // 新增备注列元素
       const filterSection = document.getElementById('filterSection');
       const collectorFilter = document.getElementById('collectorFilter');
       
@@ -185,7 +189,8 @@
           collector: ['催费员'],
           debtAmount: ['欠费总额'],
           debtPeriod: ['欠费期数'],
-          address: ['用电地址']
+          address: ['用电地址'],
+          remark: ['备注'] // 新增备注列
         };
         
         const result = {
@@ -195,7 +200,8 @@
           collector: '',
           debtAmount: '',
           debtPeriod: '',
-          address: ''
+          address: '',
+          remark: '' // 新增备注列
         };
         
         // 查找匹配的列名
@@ -235,6 +241,11 @@
           // 检查用电地址列
           if (!result.address && columnMap.address.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
             result.address = header;
+          }
+          
+          // 检查备注列
+          if (!result.remark && columnMap.remark.some(col => headerLower.includes(col.toLowerCase().replace(/\s+/g, '')))) {
+            result.remark = header;
           }
         });
         
@@ -456,7 +467,7 @@
         const columns = detectColumns(headers);
         
         // 显示识别的列信息
-        if (columns.name || columns.phone || columns.mobile || columns.collector || columns.debtAmount || columns.debtPeriod || columns.address) {
+        if (columns.name || columns.phone || columns.mobile || columns.collector || columns.debtAmount || columns.debtPeriod || columns.address || columns.remark) {
           nameColumnEl.textContent = columns.name || '未识别';
           phoneColumnEl.textContent = columns.phone || '未识别';
           mobileColumnEl.textContent = columns.mobile || '未识别';
@@ -464,6 +475,7 @@
           debtAmountColumnEl.textContent = columns.debtAmount || '未识别';
           debtPeriodColumnEl.textContent = columns.debtPeriod || '未识别';
           addressColumnEl.textContent = columns.address || '未识别';
+          remarkColumnEl.textContent = columns.remark || '未识别'; // 显示备注列
           columnInfo.classList.remove('hidden');
         }
         
@@ -474,6 +486,9 @@
         data.forEach(row => {
           const name = columns.name ? (row[columns.name] || '').toString().trim() : '';
           const collector = columns.collector ? (row[columns.collector] || '').toString().trim() : '';
+          
+          // 处理备注列
+          const remark = columns.remark ? (row[columns.remark] || '').toString().trim() : '';
           
           // 处理欠费总额 - 增强的健壮性处理
           let debtAmount = '';
@@ -555,6 +570,7 @@
               name: name, // 原始名称，包含括号和数字
               cleanName: cleanNameForDuplicateDetection(name), // 清理后的名称，用于重复检测
               collector: collector,
+              remark: remark, // 新增备注信息
               debtAmount: debtAmount,
               debtPeriod: debtPeriod,
               address: address,
@@ -769,6 +785,7 @@
             <div class="contact-name" onclick="toggleAddress(this)">
               <div class="contact-name-main">
                 ${contact.name} <!-- 显示原始名称，包含括号和数字 -->
+                ${contact.remark ? `<span class="remark-badge">${contact.remark}</span>` : ''}
                 ${contact.collector ? `<span class="collector-badge">${contact.collector}</span>` : ''}
                 ${duplicateInfoHTML}
               </div>
