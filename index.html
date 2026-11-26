@@ -44,7 +44,13 @@
     .phone-row {display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f0f0f0;}
     .phone-row:last-child {border-bottom: none;}
     .phone-type {color: #666; font-size: 14px; min-width: 60px;}
-    .phone-number {flex: 1; margin: 0 10px; color: #333; font-size: 16px;}
+    .phone-number {flex: 1; margin: 0 10px; color: #333; font-size: 16px; cursor: pointer; user-select: none;}
+    .phone-number:hover {color: #3B78DD;}
+    .phone-number.copy-phone {position: relative;}
+    .copy-hint {font-size: 12px; color: #3B78DD; margin-left: 4px; vertical-align: middle;}
+    /* 复制成功提示 */
+    .copy-toast {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 22px; border-radius: 8px; font-size: 15px; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s;}
+    .copy-toast.show {opacity: 1;}
     .phone-actions {display: flex; gap: 10px;}
     .file-upload {margin: 20px 0; text-align: center;}
     .file-input {display: none;}
@@ -139,6 +145,7 @@
         
         <p class="bold mt-10">第三步：联络成功</p>
         <p>点击联系人旁边的"拨打电话"按钮即可直接呼叫。</p>
+        <p class="tip" style="color:#3B78DD;">点击电话号码可直接复制该号码</p>
         <p class="tip auto-fixed-info">橙色号码表示已自动添加0769区号</p>
         <p class="tip duplicate-info" style="color:#ff8f00;font-weight:bold;">黄色背景表示重复联系人（姓名、电话和手机号相同）</p>
         <p class="tip duplicate-detail-info" style="color:#c62828;font-weight:bold;">
@@ -1070,6 +1077,53 @@
         }
       }
       
+      // 复制手机号到剪贴板
+      function copyPhoneNumber(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function() {
+            showCopyToast('已复制: ' + text);
+          }).catch(function() {
+            fallbackCopy(text);
+          });
+        } else {
+          fallbackCopy(text);
+        }
+      }
+      
+      // 兼容旧浏览器/非安全上下文的复制方式
+      function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          showCopyToast('已复制: ' + text);
+        } catch (e) {
+          showCopyToast('复制失败，请手动复制');
+        }
+        document.body.removeChild(textarea);
+      }
+      
+      // 显示复制成功提示
+      function showCopyToast(message) {
+        let toast = document.getElementById('copyToast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'copyToast';
+          toast.className = 'copy-toast';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(function() {
+          toast.classList.remove('show');
+        }, 1500);
+      }
+      
       // 渲染联系人列表
       function renderContactList() {
         if (contacts.length === 0) {
@@ -1142,13 +1196,14 @@
           if (contact.phones.length > 0) {
             contact.phones.forEach(phone => {
               if (phone.isValid) {
-                const numberClass = phone.isAutoFixed ? 'phone-number auto-fixed' : 'phone-number';
+                const numberClass = phone.isAutoFixed ? 'phone-number auto-fixed copy-phone' : 'phone-number copy-phone';
                 phonesHTML += `
                   <div class="phone-row">
                     <div class="phone-type">${phone.type}</div>
-                    <div class="${numberClass}">
+                    <div class="${numberClass}" data-phone="${phone.number}" title="点击复制号码">
                       ${phone.number}
                       ${phone.isAutoFixed ? '<span style="font-size:12px;color:#d35400;">(添加0769区号)</span>' : ''}
+                      <span class="copy-hint">点击复制</span>
                     </div>
                     <div class="phone-actions">
                       <a href="tel:${phone.number}" class="btn primary call-btn">拨打电话</a>
@@ -1215,6 +1270,13 @@
               e.preventDefault();
               tipsEl.textContent = 'UC 浏览器可能拦截自动跳转，请直接点击拨号按钮完成呼叫。';
             }
+          });
+        });
+        
+        // 绑定复制号码事件
+        document.querySelectorAll('.copy-phone').forEach(el => {
+          el.addEventListener('click', function() {
+            copyPhoneNumber(this.getAttribute('data-phone'));
           });
         });
       }
